@@ -1,0 +1,13 @@
+# config.py - Central Configuration Settings (No change from previous version)
+
+class Config:
+    # Database settings
+    DATABASE_URI = 'sqlite:///health_data.db'
+    
+    # ML settings
+    ML_MODEL_PATH = 'models/diabetes_rf_model.pkl'
+    
+    # Business logic constants
+    HIGH_RISK_THRESHOLD = 0.60
+    # List of features expected by the model in order
+    MODEL_FEATURES = ['pregnancies', 'glucose', 'bp', 'bmi', 'age']
