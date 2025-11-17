@@ -1,5 +1,4 @@
 # My-Project
-Got it! I'll provide the project details in a clear, narrative format, skipping the tables as requested.
 1. Project Overview & Core Goal
 The project is the Chronic Disease Prediction and Management System, focusing specifically on Type 2 Diabetes. Your main objective is to apply Machine Learning (ML) concepts in a real-world, impactful scenario by developing a functioning prototype. This system must provide tools for both early risk prediction for patients and a data management dashboard for healthcare providers.
  2. Functional and Technical Execution
