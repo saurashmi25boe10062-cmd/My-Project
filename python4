@@ -1,0 +1,24 @@
+# services/recommendation_engine.py - Generates advice based on prediction
+
+def generate_advice(score, patient_data):
+    """
+    Generates personalized advice based on the risk score and patient's data.
+    """
+    recs = []
+    
+    if score >= Config.HIGH_RISK_THRESHOLD:
+        recs.append("🔴 URGENT: Your risk is high. Please consult a health professional immediately.")
+        
+        if float(patient_data.get('bmi', 0)) > 30:
+            recs.append("💡 Action: Focus on reducing BMI through consistent exercise.")
+        
+        if float(patient_data.get('glucose', 0)) > 140:
+             recs.append("🍎 Action: Strictly limit sugary drinks and monitor carbohydrate intake.")
+             
+    elif score >= 0.35: # Medium Risk
+        recs.append("🟡 Risk is medium. Focus on prevention: maintain a balanced diet and regular activity.")
+        
+    else:
+        recs.append("🟢 Risk is low. Continue healthy lifestyle habits. Repeat checkup annually.")
+
+    return "\n\n".join(recs)
