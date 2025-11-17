@@ -1,0 +1,85 @@
+# app.py - The main entry point for the web application
+
+from flask import Flask, request, jsonify, render_template, redirect, url_for
+from services.ml_service import MLModelService
+from data.db_connector import DBConnector # Assume this handles CRUD operations
+
+app = Flask(__name__)
+ml_service = MLModelService(model_path='models/diabetes_rf_model.pkl')
+db = DBConnector(db_uri='sqlite:///db/health_data.db')
+
+# --- Main Routes ---
+
+@app.route('/')
+def home():
+    """Renders the landing page."""
+    return render_template('home.html')
+
+@app.route('/patient/input', methods=['GET', 'POST'])
+def patient_input():
+    """Handles data submission from the patient form."""
+    if request.method == 'POST':
+        # 1. Get raw data from the form
+        data = request.form.to_dict()
+        
+        # 2. Pre-process and validate data (Crucial step to implement!)
+        processed_data, patient_id = preprocess_data(data) 
+        
+        try:
+            # 3. Predict Risk (Calls the ML Service)
+            risk_score = ml_service.predict_risk(processed_data)
+            
+            # 4. Generate Recommendations
+            recommendations = generate_recommendations(risk_score, data)
+            
+            # 5. Save Data and Prediction (Calls DB Connector)
+            db.save_patient_data(patient_id, data, risk_score)
+            
+            # 6. Redirect to the results page
+            return redirect(url_for('results', score=risk_score, recs=recommendations))
+
+        except Exception as e:
+            # Handle prediction errors (NFR: Error Handling)
+            return render_template('error.html', error=f"Prediction failed: {e}")
+
+    return render_template('patient_input.html') # The form from Screenshot #1
+
+@app.route('/patient/results')
+def results():
+    """Displays the prediction and recommendations (Screenshot #2 & #3)."""
+    score = request.args.get('score', 0)
+    recs = request.args.get('recs', 'No recommendations available.')
+    risk_level = "High" if float(score) > 0.5 else "Low"
+    
+    return render_template('results.html', score=score, level=risk_level, recommendations=recs)
+
+# --- Doctor Dashboard Route (FR5.0) ---
+
+@app.route('/doctor/dashboard')
+def doctor_dashboard():
+    """Displays a list of high-risk patients (Screenshot #4)."""
+    # Assuming the DB connector has a method to fetch high-risk patients
+    high_risk_patients = db.get_high_risk_patients()
+    return render_template('doctor_dashboard.html', patients=high_risk_patients)
+
+# --- Utility Functions (Implement these!) ---
+
+def preprocess_data(raw_data):
+    """
+    Cleans, validates, and transforms raw form data into the format
+    expected by the ML model (e.g., scaling, one-hot encoding).
+    """
+    # ... implementation details here ...
+    return processed_features, raw_data.get('patient_id')
+
+def generate_recommendations(score, data):
+    """
+    Generates personalized text recommendations based on score and patient data.
+    """
+    # ... implementation details here ...
+    return ["Eat less sugar.", "Exercise 30 mins daily."]
+
+if __name__ == '__main__':
+    # Initialize the database and run the app
+    db.init_db()
+    app.run(debug=True)
