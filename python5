@@ -1,0 +1,42 @@
+# data/db_connector.py - Database connector using SQLite
+
+class DBConnector:
+    def __init__(self, db_uri):
+        self.db_uri = db_uri
+
+    def _execute(self, query, params=(), fetch=False):
+        # Implementation using sqlite3 to connect, execute, commit, and close
+        conn = sqlite3.connect(self.db_uri)
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.fetchall() if fetch else None
+
+    def init_db(self):
+        """Creates the necessary tables (Patient and HealthData)."""
+        self._execute("CREATE TABLE IF NOT EXISTS Patient (patient_id TEXT PRIMARY KEY, name TEXT, date_registered TEXT)")
+        self._execute("CREATE TABLE IF NOT EXISTS HealthData (data_id INTEGER PRIMARY KEY, patient_id TEXT, date_recorded TEXT, risk_score REAL, raw_data TEXT)")
+
+    def save_patient_data(self, patient_id, raw_data, risk_score):
+        """Saves a new submission and its prediction score."""
+        date_recorded = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        raw_data_json = json.dumps(raw_data)
+        
+        self._execute("INSERT OR IGNORE INTO Patient (patient_id, name, date_registered) VALUES (?, ?, ?)",
+                      (patient_id, raw_data.get('name', 'Unknown'), date_recorded))
+        
+        self._execute("""
+            INSERT INTO HealthData (patient_id, date_recorded, risk_score, raw_data) 
+            VALUES (?, ?, ?, ?)
+        """, (patient_id, date_recorded, risk_score, raw_data_json))
+
+    def get_high_risk_patients(self, threshold):
+        """Retrieves patients whose LATEST risk score was above the threshold."""
+        # Query to fetch name, risk, and date for high-risk entries
+        results = self._execute("""
+            SELECT p.patient_id, p.name, h.risk_score, h.date_recorded 
+            FROM HealthData h JOIN Patient p ON h.patient_id = p.patient_id 
+            WHERE h.risk_score >= ? ORDER BY h.risk_score DESC
+        """, (threshold,), fetch=True)
+        
+        return [{'id': row[0], 'name': row[1], 'risk': row[2], 'last_check': row[3]} for row in results]
