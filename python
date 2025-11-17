@@ -1,0 +1,68 @@
+# main_cli.py - Command-Line Interface (CLI) for the Prediction System
+
+def run_prediction_workflow():
+    """Runs the full prediction process from user input to result output."""
+    print("\n--- Chronic Disease Risk Prediction Tool ---")
+    
+    # 1. Gather Input
+    raw_data = get_user_input()
+    patient_id = raw_data.get('patient_id', 'CLI_USER_001')
+    
+    try:
+        # 2. Process, Predict, and Get Advice (Calls Modules 3, 4, 6)
+        processed_features = preprocess_data(raw_data) 
+        ml_service = MLModelService(model_path=Config.ML_MODEL_PATH)
+        risk_score = ml_service.predict_risk(processed_features)
+        recommendations = generate_advice(risk_score, raw_data)
+        
+        # 3. Save Data (Calls Module 5)
+        db = DBConnector(db_uri=Config.DATABASE_URI)
+        db.save_patient_data(patient_id, raw_data, risk_score)
+        
+        # 4. Display Results
+        display_results(risk_score, recommendations)
+        
+    except Exception as e:
+        print(f"\n[ERROR] Prediction failed: {e}")
+    
+    # 5. Doctor Dashboard Check (Simulated)
+    run_doctor_dashboard_check()
+
+
+def get_user_input():
+    """Simulates gathering data from a web form via console input."""
+    print("\nPlease enter the required metrics:")
+    data = {}
+    data['patient_id'] = input("Patient ID: ")
+    data['pregnancies'] = input("Pregnancies: ")
+    data['glucose'] = input("Glucose (mg/dL): ")
+    data['bp'] = input("Blood Pressure (mm Hg): ")
+    data['bmi'] = input("BMI (kg/m²): ")
+    data['age'] = input("Age: ")
+    return data
+
+def display_results(score, recs):
+    """Prints the prediction results and recommendations to the console."""
+    print("\n==============================================")
+    print(f"| CALCULATED RISK SCORE: {score * 100:.1f}%")
+    print(f"| RISK LEVEL: {'HIGH' if score >= Config.HIGH_RISK_THRESHOLD else 'LOW/MEDIUM'}")
+    print("==============================================")
+    print("\n--- Personalized Recommendations ---")
+    print(recs)
+
+def run_doctor_dashboard_check():
+    """Simulates the doctor checking high-risk patients."""
+    db = DBConnector(db_uri=Config.DATABASE_URI)
+    high_risk_patients = db.get_high_risk_patients(Config.HIGH_RISK_THRESHOLD)
+    print("\n--- Doctor Dashboard View (High Risk) ---")
+    if high_risk_patients:
+        for p in high_risk_patients:
+            print(f"- {p['name']} (ID: {p['id']}): {p['risk'] * 100:.1f}% - Last Check: {p['last_check']}")
+    else:
+        print("No patients currently flagged as HIGH RISK.")
+
+if __name__ == '__main__':
+    # Initialize components before running the workflow
+    db_connector = DBConnector(db_uri=Config.DATABASE_URI)
+    db_connector.init_db()
+    run_prediction_workflow()
