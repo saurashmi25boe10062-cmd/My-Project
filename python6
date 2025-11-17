@@ -1,0 +1,24 @@
+# utils/data_preprocessing.py - Cleans and transforms raw data
+
+def preprocess_data(raw_data):
+    """
+    Cleans, validates, and transforms raw form data into a feature vector 
+    expected by the ML model.
+    """
+    feature_list = []
+    
+    # Check for required fields and convert types
+    for key in Config.MODEL_FEATURES:
+        try:
+            value = float(raw_data.get(key, 0))
+            
+            # Simple placeholder imputation (e.g., replace 0 with a default)
+            if key in ['glucose', 'bp', 'bmi'] and value == 0:
+                value = 75.0 
+                
+            feature_list.append(value)
+        except ValueError:
+            raise ValueError(f"Invalid numeric input for feature: {key}. Please enter a number.")
+
+    # The result must be a 1D numpy array for the model
+    return np.array(feature_list)
