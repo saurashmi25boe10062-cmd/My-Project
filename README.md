@@ -28,10 +28,3 @@ Use Case Diagram: Shows the external scope, detailing interactions between the P
 Sequence Diagram: Illustrates the step-by-step communication process when a patient submits data and receives a prediction.
 Class/Component Diagram: Details the structure of your software components (e.g., the relationship between your Patient class, MLModelService, and DBConnector).
 ER Diagram (Entity-Relationship Diagram): Maps out your database structure, showing tables (entities) like Patient, HealthData, and RiskPrediction, and the relationships between them.
-Submission Files
-Your final submission is a two-part delivery:
-GitHub Repository: This is your public working code. It must contain:
-README.md: The project summary, key features, technologies, and clear instructions on how to install and run the code.
-statement.md: A document outlining the problem, scope, target users, and high-level features.
-The Source Code: The modular implementation files (.py, .html, etc.).
-Project Report (PDF): This detailed document must follow the mandatory 15-section structure, covering everything from the Introduction and Functional Requirements to your Implementation Details, Challenges, and Future Enhancements. Crucially, Section 10 must contain screenshots of your working system and your ML model's evaluation metrics.
